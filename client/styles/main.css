@@ -1,4 +1,5 @@
 /* THE LAST PROCESSION - Main Styles */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=UnifrakturMaguntia&display=swap');
 
 /* CSS Variables */
 :root {
@@ -28,9 +29,6 @@
     padding: 0;
     box-sizing: border-box;
 }
-
-/* Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=UnifrakturMaguntia&display=swap');
 
 /* Base */
 html, body {
