@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { Player } from './Player.js';
 import { RemotePlayer } from './RemotePlayer.js';
-import { Map } from './Map.js';
+import { Map as GameMap } from './Map.js';
 import { Shrine } from './Shrine.js';
 import { Vessel } from './Vessel.js';
 import { Environment } from './Environment.js';
@@ -141,7 +141,7 @@ export class Game {
         this.environment = new Environment(this.scene);
 
         // Create map
-        this.map = new Map(this.scene);
+        this.map = new GameMap(this.scene);
 
         // Create shrines
         this.shrines = [];
