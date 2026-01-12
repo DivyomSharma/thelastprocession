@@ -1,0 +1,662 @@
+/* THE LAST PROCESSION - Main Styles */
+
+/* CSS Variables */
+:root {
+    --color-bg: #0a0a0c;
+    --color-bg-dark: #050507;
+    --color-text: #e8e4d9;
+    --color-text-dim: #8b8678;
+    --color-accent: #c9a227;
+    --color-accent-dim: #8b7019;
+    --color-danger: #8b2020;
+    --color-danger-glow: #ff3030;
+    --color-success: #2d5a27;
+    --color-hollow: #4a1a4a;
+    --color-fire: #ff6b35;
+    --color-fire-glow: #ffa500;
+    
+    --font-main: 'Crimson Text', Georgia, serif;
+    --font-display: 'UnifrakturMaguntia', 'Crimson Text', serif;
+    
+    --transition-fast: 0.15s ease;
+    --transition-medium: 0.3s ease;
+}
+
+/* Reset */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=UnifrakturMaguntia&display=swap');
+
+/* Base */
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--color-bg-dark);
+    font-family: var(--font-main);
+    color: var(--color-text);
+}
+
+/* Game Container */
+#game-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#game-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* UI Overlay */
+#ui-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+#ui-overlay > * {
+    pointer-events: auto;
+}
+
+/* Screens */
+.screen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.screen.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.screen.hidden {
+    display: none !important;
+}
+
+/* Lobby Screen */
+#lobby-screen {
+    background: linear-gradient(135deg, var(--color-bg-dark) 0%, #1a1a20 100%);
+}
+
+.lobby-container {
+    text-align: center;
+    padding: 2rem;
+    max-width: 500px;
+}
+
+.game-title {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    color: var(--color-accent);
+    text-shadow: 0 0 30px rgba(201, 162, 39, 0.4);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.1em;
+}
+
+.game-subtitle {
+    font-size: 1.1rem;
+    color: var(--color-text-dim);
+    font-style: italic;
+    margin-bottom: 3rem;
+}
+
+.menu-section {
+    background: rgba(10, 10, 12, 0.8);
+    border: 1px solid rgba(201, 162, 39, 0.2);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--color-text-dim);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(201, 162, 39, 0.3);
+    border-radius: 4px;
+    color: var(--color-text);
+    font-family: var(--font-main);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color var(--transition-fast);
+}
+
+.input-group input:focus {
+    border-color: var(--color-accent);
+}
+
+.input-group input::placeholder {
+    color: var(--color-text-dim);
+    opacity: 0.6;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    flex: 1;
+    padding: 0.9rem 1.5rem;
+    font-family: var(--font-main);
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dim) 100%);
+    color: var(--color-bg-dark);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(201, 162, 39, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--color-text);
+    border: 1px solid var(--color-text-dim);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-text);
+}
+
+/* Room Info */
+.room-info {
+    background: rgba(10, 10, 12, 0.8);
+    border: 1px solid rgba(201, 162, 39, 0.2);
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.room-info h2 {
+    color: var(--color-accent);
+    margin-bottom: 1.5rem;
+}
+
+.player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+.player-item.ready {
+    border-left: 3px solid var(--color-success);
+}
+
+.player-name {
+    font-weight: 600;
+}
+
+.player-status {
+    font-size: 0.85rem;
+    color: var(--color-text-dim);
+}
+
+.waiting-text {
+    color: var(--color-text-dim);
+    font-style: italic;
+    margin-bottom: 1.5rem;
+}
+
+/* HUD */
+#hud {
+    display: flex !important;
+    pointer-events: none;
+}
+
+#hud.active {
+    display: flex !important;
+}
+
+.hud-element {
+    position: absolute;
+    pointer-events: auto;
+}
+
+/* Faith Meter */
+#faith-container {
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.faith-label {
+    font-size: 0.8rem;
+    color: var(--color-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+.faith-bar {
+    width: 200px;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--color-accent-dim);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.faith-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-accent-dim) 0%, var(--color-accent) 100%);
+    transition: width var(--transition-medium);
+}
+
+.faith-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    min-width: 35px;
+}
+
+/* Timer */
+#timer-container {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.timer {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: var(--color-text);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.timer.warning {
+    color: var(--color-fire);
+    animation: pulse 1s infinite;
+}
+
+.timer-label {
+    font-size: 0.75rem;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Role Indicator */
+#role-container {
+    top: 20px;
+    right: 20px;
+}
+
+.role-indicator {
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--color-accent-dim);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+.role-indicator.hollow {
+    background: rgba(74, 26, 74, 0.8);
+    border-color: #8a3a8a;
+    color: #d070d0;
+}
+
+/* Shrine Progress */
+#shrine-progress {
+    bottom: 20px;
+    left: 20px;
+}
+
+.shrine-label {
+    font-size: 0.75rem;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+}
+
+.shrine-icons {
+    display: flex;
+    gap: 8px;
+}
+
+.shrine-icon {
+    font-size: 1.2rem;
+    color: var(--color-text-dim);
+    transition: all var(--transition-fast);
+}
+
+.shrine-icon.lit {
+    color: var(--color-fire);
+    text-shadow: 0 0 8px var(--color-fire-glow);
+}
+
+/* Vessel Indicator */
+#vessel-indicator {
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.8rem 1.2rem;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--color-accent);
+    border-radius: 4px;
+}
+
+.vessel-icon {
+    font-size: 1.5rem;
+}
+
+.vessel-text {
+    font-size: 0.9rem;
+    color: var(--color-accent);
+}
+
+/* Interaction Prompt */
+.interaction-prompt {
+    position: absolute;
+    bottom: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.8rem 1.5rem;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--color-accent-dim);
+    border-radius: 4px;
+    font-size: 1rem;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    pointer-events: none;
+}
+
+.interaction-prompt:not(.hidden) {
+    opacity: 1;
+}
+
+/* Hollow Overlay */
+.hollow-overlay {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    text-align: right;
+    opacity: 0;
+    transition: opacity var(--transition-medium);
+}
+
+.hollow-overlay:not(.hidden) {
+    opacity: 1;
+}
+
+.hollow-hint {
+    font-size: 1rem;
+    color: #d070d0;
+    margin-bottom: 0.3rem;
+}
+
+.hollow-tip {
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+    font-style: italic;
+}
+
+/* Crosshair */
+.crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+}
+
+/* Voting Screen */
+#voting-screen {
+    background: rgba(10, 10, 12, 0.95);
+}
+
+.voting-container {
+    text-align: center;
+    padding: 2rem;
+    max-width: 600px;
+    width: 100%;
+}
+
+.voting-title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: var(--color-danger-glow);
+    margin-bottom: 1rem;
+}
+
+.voting-timer {
+    color: var(--color-text-dim);
+    margin-bottom: 2rem;
+}
+
+.vote-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.vote-option {
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--color-text-dim);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.vote-option:hover {
+    border-color: var(--color-danger);
+    background: rgba(139, 32, 32, 0.2);
+}
+
+.vote-option.selected {
+    border-color: var(--color-danger-glow);
+    background: rgba(139, 32, 32, 0.4);
+}
+
+.vote-option .player-name {
+    font-size: 1.1rem;
+}
+
+/* End Screen */
+#end-screen {
+    background: linear-gradient(135deg, var(--color-bg-dark) 0%, #1a1a20 100%);
+}
+
+.end-container {
+    text-align: center;
+    padding: 2rem;
+    max-width: 600px;
+}
+
+.end-title {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.end-title.villagers-win {
+    color: var(--color-accent);
+    text-shadow: 0 0 30px rgba(201, 162, 39, 0.5);
+}
+
+.end-title.hollow-wins {
+    color: var(--color-danger-glow);
+    text-shadow: 0 0 30px rgba(255, 48, 48, 0.5);
+}
+
+.end-subtitle {
+    font-size: 1.2rem;
+    color: var(--color-text-dim);
+    margin-bottom: 2rem;
+}
+
+.end-roles {
+    margin-bottom: 2rem;
+}
+
+.end-role-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8rem 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.end-role-item.hollow {
+    background: rgba(74, 26, 74, 0.4);
+    border-left: 3px solid #d070d0;
+}
+
+/* Instructions */
+.instructions {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--color-text-dim);
+    border-radius: 8px;
+    padding: 1.5rem;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    pointer-events: none;
+}
+
+.instructions:not(.hidden) {
+    opacity: 1;
+}
+
+.instructions h3 {
+    color: var(--color-accent);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.instructions ul {
+    list-style: none;
+}
+
+.instructions li {
+    padding: 0.3rem 0;
+    color: var(--color-text-dim);
+}
+
+.instructions strong {
+    color: var(--color-text);
+}
+
+/* Utility */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 2.5rem;
+    }
+    
+    .faith-bar {
+        width: 120px;
+    }
+    
+    .timer {
+        font-size: 2rem;
+    }
+}
+
+/* Low Faith Effects */
+body.faith-low {
+    animation: vignette-pulse 2s infinite;
+}
+
+body.faith-critical {
+    animation: vignette-heavy 1s infinite;
+}
+
+@keyframes vignette-pulse {
+    0%, 100% {
+        box-shadow: inset 0 0 100px 30px rgba(139, 32, 32, 0.3);
+    }
+    50% {
+        box-shadow: inset 0 0 100px 50px rgba(139, 32, 32, 0.5);
+    }
+}
+
+@keyframes vignette-heavy {
+    0%, 100% {
+        box-shadow: inset 0 0 150px 50px rgba(139, 32, 32, 0.5);
+    }
+    50% {
+        box-shadow: inset 0 0 150px 70px rgba(139, 32, 32, 0.7);
+    }
+}

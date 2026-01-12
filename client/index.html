@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE LAST PROCESSION</title>
+    <meta name="description" content="A co-op folk horror game. Complete the ritual before dawn, but beware - one among you serves the Sleeper.">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <!-- Game Canvas -->
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+    </div>
+
+    <!-- UI Overlay -->
+    <div id="ui-overlay">
+        <!-- Lobby Screen -->
+        <div id="lobby-screen" class="screen active">
+            <div class="lobby-container">
+                <h1 class="game-title">THE LAST PROCESSION</h1>
+                <p class="game-subtitle">A Folk Horror Experience</p>
+                
+                <div class="menu-section">
+                    <div class="input-group">
+                        <label for="player-name">Your Name</label>
+                        <input type="text" id="player-name" placeholder="Enter your name..." maxlength="16">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="room-code">Room Code</label>
+                        <input type="text" id="room-code" placeholder="Enter room code..." maxlength="6">
+                    </div>
+                    
+                    <div class="button-group">
+                        <button id="join-btn" class="btn btn-primary">Join Room</button>
+                        <button id="create-btn" class="btn btn-secondary">Create Room</button>
+                    </div>
+                </div>
+                
+                <div id="room-info" class="room-info hidden">
+                    <h2>Room: <span id="current-room-code"></span></h2>
+                    <div id="player-list" class="player-list"></div>
+                    <p class="waiting-text">Waiting for players... (3-6 required)</p>
+                    <button id="ready-btn" class="btn btn-primary">Ready</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- HUD (In-Game) -->
+        <div id="hud" class="screen hidden">
+            <!-- Faith Meter -->
+            <div id="faith-container" class="hud-element">
+                <div class="faith-label">FAITH</div>
+                <div class="faith-bar">
+                    <div id="faith-fill" class="faith-fill"></div>
+                </div>
+                <div id="faith-value" class="faith-value">100</div>
+            </div>
+
+            <!-- Timer -->
+            <div id="timer-container" class="hud-element">
+                <div id="timer" class="timer">10:00</div>
+                <div class="timer-label">Until Dawn</div>
+            </div>
+
+            <!-- Role Indicator (Private) -->
+            <div id="role-container" class="hud-element">
+                <div id="role-indicator" class="role-indicator">VILLAGER</div>
+            </div>
+
+            <!-- Interaction Prompt -->
+            <div id="interaction-prompt" class="interaction-prompt hidden">
+                <span id="prompt-text">Press E to interact</span>
+            </div>
+
+            <!-- Shrine Progress -->
+            <div id="shrine-progress" class="hud-element">
+                <div class="shrine-label">Shrines</div>
+                <div id="shrine-icons" class="shrine-icons">
+                    <span class="shrine-icon" data-shrine="0">○</span>
+                    <span class="shrine-icon" data-shrine="1">○</span>
+                    <span class="shrine-icon" data-shrine="2">○</span>
+                    <span class="shrine-icon" data-shrine="3">○</span>
+                    <span class="shrine-icon" data-shrine="4">○</span>
+                    <span class="shrine-icon" data-shrine="5">○</span>
+                    <span class="shrine-icon" data-shrine="6">○</span>
+                </div>
+            </div>
+
+            <!-- Vessel Indicator -->
+            <div id="vessel-indicator" class="hud-element hidden">
+                <div class="vessel-icon">🏺</div>
+                <div class="vessel-text">Carrying Vessel</div>
+            </div>
+
+            <!-- Hollow Overlay (Only visible to Hollow) -->
+            <div id="hollow-overlay" class="hollow-overlay hidden">
+                <div class="hollow-hint">You are The Hollow</div>
+                <div class="hollow-tip">Sabotage the ritual without being caught</div>
+            </div>
+
+            <!-- Crosshair -->
+            <div id="crosshair" class="crosshair">+</div>
+        </div>
+
+        <!-- Voting Screen -->
+        <div id="voting-screen" class="screen hidden">
+            <div class="voting-container">
+                <h2 class="voting-title">WHO IS THE HOLLOW?</h2>
+                <p class="voting-timer">Time remaining: <span id="vote-timer">30</span>s</p>
+                <div id="vote-options" class="vote-options"></div>
+                <button id="skip-vote-btn" class="btn btn-secondary">Skip Vote</button>
+            </div>
+        </div>
+
+        <!-- Game End Screen -->
+        <div id="end-screen" class="screen hidden">
+            <div class="end-container">
+                <h1 id="end-title" class="end-title">DAWN BREAKS</h1>
+                <p id="end-subtitle" class="end-subtitle">The ritual is complete</p>
+                <div id="end-roles" class="end-roles"></div>
+                <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+            </div>
+        </div>
+
+        <!-- Instructions Overlay -->
+        <div id="instructions" class="instructions hidden">
+            <div class="instructions-content">
+                <h3>Controls</h3>
+                <ul>
+                    <li><strong>WASD</strong> - Move</li>
+                    <li><strong>Mouse</strong> - Look around</li>
+                    <li><strong>E</strong> - Interact</li>
+                    <li><strong>F</strong> - Transfer Vessel</li>
+                    <li><strong>Tab</strong> - Player list</li>
+                    <li><strong>Esc</strong> - Release mouse</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "the-last-procession",
+  "version": "1.0.0",
+  "description": "Co-op folk horror browser game built with Three.js and Supabase",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "dev:local": "concurrently \"npm run server\" \"npm run dev\"",
+    "server": "node server/server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.10"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
