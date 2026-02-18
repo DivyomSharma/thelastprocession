@@ -16,7 +16,17 @@ export default class MovementValidator {
      * @returns {{ x, y, direction, isMoving }}
      */
     applyMovement(player, input, deltaMs) {
-        const { dx, dy } = input;
+        let { dx, dy } = input;
+
+        // ─── Possession Effect: Movement Glitches (Stage 3+) ───
+        if (player.attunement > 75) {
+            // 5% chance to ignore input or move randomly
+            if (Math.random() < 0.05) {
+                // Randomize direction
+                dx = (Math.random() - 0.5) * 2;
+                dy = (Math.random() - 0.5) * 2;
+            }
+        }
 
         // Clamp input to -1...1
         const cdx = Math.max(-1, Math.min(1, dx));

@@ -182,6 +182,10 @@ export default class GameScene extends Phaser.Scene {
                 this.handleAttunementHint(level, type);
             });
 
+            // ─── Possession FX ───
+            this.createVignette();
+            this.hallucinationTimer = 0;
+
             console.log('[GameScene] Created successfully');
         } catch (err) {
             console.error('[GameScene] Error in create:', err);
@@ -189,10 +193,48 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
+    createVignette() {
+        const { width, height } = this.cameras.main;
+        this.vignette = this.add.image(width / 2, height / 2, 'vignette')
+            .setScrollFactor(0)
+            .setDepth(150)
+            .setAlpha(0);
+
+        // Red overlay for max possession
+        this.bloodOverlay = this.add.rectangle(width / 2, height / 2, width, height, 0x660000)
+            .setScrollFactor(0)
+            .setDepth(149)
+            .setAlpha(0);
+    }
+
     handleAttunementHint(level, type) {
         console.log(`[GameScene] Attunement Hint: ${type} at ${level}%`);
 
-        // Visual feedback based on level
+        // Vignette intensity
+        let targetAlpha = 0;
+        if (level >= 90) targetAlpha = 0.8;
+        else if (level >= 75) targetAlpha = 0.5;
+        else if (level >= 50) targetAlpha = 0.3;
+        else if (level >= 25) targetAlpha = 0.1;
+
+        this.tweens.add({
+            targets: this.vignette,
+            alpha: targetAlpha,
+            duration: 2000
+        });
+
+        // Stage 4: Red tint
+        if (level >= 90) {
+            this.tweens.add({
+                targets: this.bloodOverlay,
+                alpha: 0.3,
+                duration: 5000,
+                yoyo: true,
+                repeat: -1
+            });
+        }
+
+        // Visual feedback based on level (Flash/Shake)
         let duration = 500;
         let shake = 0;
 
@@ -237,6 +279,31 @@ export default class GameScene extends Phaser.Scene {
             ease: 'Power2',
             onComplete: () => text.destroy()
         });
+    }
+
+    updateHallucinations() {
+        // Random chance to spawn "fake" red eyes in the dark
+        if (Math.random() < 0.005) { // 0.5% chance per frame
+            const { width, height } = this.cameras.main;
+            const x = this.cameras.main.worldView.x + Math.random() * width;
+            const y = this.cameras.main.worldView.y + Math.random() * height;
+
+            const eyes = this.add.text(x, y, 'OO', {
+                fontFamily: 'Courier New',
+                fontSize: '10px',
+                color: '#ff0000',
+                fontStyle: 'bold'
+            }).setDepth(10).setAlpha(0);
+
+            this.tweens.add({
+                targets: eyes,
+                alpha: 1,
+                duration: 200,
+                yoyo: true,
+                hold: 500,
+                onComplete: () => eyes.destroy()
+            });
+        }
     }
 
 
@@ -434,6 +501,11 @@ export default class GameScene extends Phaser.Scene {
             }
         }
         this.fogOfWar.update(lightSources);
+
+        // ─── Hallucinations ───
+        if (this.vignette && this.vignette.alpha > 0.3) { // Only if attunement is high enough (Stage 2+)
+            this.updateHallucinations();
+        }
     }
 
     buildTileMap() {

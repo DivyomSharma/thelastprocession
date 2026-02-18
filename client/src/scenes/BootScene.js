@@ -203,5 +203,20 @@ export default class BootScene extends Phaser.Scene {
         lgctx.fillStyle = gradient;
         lgctx.fillRect(0, 0, gradSize, gradSize);
         gradCanvas.refresh();
+
+
+        // ─── Vignette (Possession effect) ───
+        const vigSize = 800;
+        const vigCanvas = this.textures.createCanvas('vignette', vigSize, vigSize);
+        const vctx = vigCanvas.context;
+        const vigGrad = vctx.createRadialGradient(
+            vigSize / 2, vigSize / 2, vigSize * 0.3,
+            vigSize / 2, vigSize / 2, vigSize * 0.8
+        );
+        vigGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        vigGrad.addColorStop(1, 'rgba(0, 0, 0, 1)');
+        vctx.fillStyle = vigGrad;
+        vctx.fillRect(0, 0, vigSize, vigSize);
+        vigCanvas.refresh();
     }
 }

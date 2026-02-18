@@ -1,11 +1,11 @@
-const { TILE_SIZE } = require('../../../shared/constants');
+import { TILE_SIZE } from '../../../shared/constants.js';
 
-class AttunementManager {
+export default class AttunementManager {
     constructor() {
         // Configuration
         this.ISOLATION_DISTANCE = TILE_SIZE * 5; // Distance to be considered "alone"
-        this.ISOLATION_RATE = 0.5; // Attunement gained per second when alone
-        this.PROXIMITY_RATE = -1.0; // Attunement lost per second when near others
+        this.ISOLATION_RATE = 5.0; // Attunement gained per second when alone
+        this.PROXIMITY_RATE = -2.0; // Attunement lost per second when near others
         this.MAX_ATTUNEMENT = 100;
         this.MIN_ATTUNEMENT = 0;
 
@@ -44,7 +44,8 @@ class AttunementManager {
             const change = isIsolated ? this.ISOLATION_RATE : this.PROXIMITY_RATE;
             const previousValue = player.attunement;
 
-            player.attunement = Math.max(this.MIN_ATTUNEMENT, Math.min(this.MAX_ATTUNEMENT, player.attunement + change * dt));
+            // Ensure attunement stays within bounds
+            player.attunement = Math.max(this.MIN_ATTUNEMENT, Math.min(this.MAX_ATTUNEMENT, (player.attunement || 0) + change * dt));
 
             // Check for thresholds
             const event = this.checkThresholds(player, previousValue);
@@ -71,5 +72,3 @@ class AttunementManager {
         return null;
     }
 }
-
-module.exports = AttunementManager;
