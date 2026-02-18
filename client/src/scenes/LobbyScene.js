@@ -152,14 +152,23 @@ export default class LobbyScene extends Phaser.Scene {
             this.updatePlayerList();
         });
 
+        // Countdown visual handling
+        this.countdownEvent = null;
+
+        socketManager.on('countdownStart', ({ duration }) => {
+            this.startCountdown(duration || 3);
+        });
+
+        socketManager.on('countdownCancelled', () => {
+            this.cancelCountdown();
+        });
+
         socketManager.on(MSG.S_GAME_START, (data) => {
-            // Brief countdown visual then transition
-            this.showCountdown(() => {
-                this.scene.start('GameScene', {
-                    matchState: data.matchState,
-                    players: data.players,
-                    myId: socketManager.playerId,
-                });
+            // Immediately transition (countdown finished on server)
+            this.scene.start('GameScene', {
+                matchState: data.matchState,
+                players: data.players,
+                myId: socketManager.playerId,
             });
         });
     }
@@ -218,14 +227,19 @@ export default class LobbyScene extends Phaser.Scene {
         this.statusText.setText(`${count}/6 players • ${readyCount} ready`);
     }
 
-    showCountdown(callback) {
-        let count = 3;
+    startCountdown(startFrom) {
+        if (this.countdownEvent) {
+            this.countdownEvent.remove();
+        }
+
+        let count = startFrom;
         this.countdownText.setAlpha(1);
         this.countdownText.setText(count.toString());
+        this.countdownText.setScale(1);
 
-        const timer = this.time.addEvent({
-            delay: 800,
-            repeat: 2,
+        this.countdownEvent = this.time.addEvent({
+            delay: 1000,
+            repeat: startFrom,
             callback: () => {
                 count--;
                 if (count > 0) {
@@ -238,11 +252,19 @@ export default class LobbyScene extends Phaser.Scene {
                         yoyo: true,
                     });
                 } else {
-                    this.countdownText.setText('GO');
-                    this.time.delayedCall(400, callback);
+                    this.countdownText.setText('ENTERING...');
                 }
             },
         });
+    }
+
+    cancelCountdown() {
+        if (this.countdownEvent) {
+            this.countdownEvent.remove();
+            this.countdownEvent = null;
+        }
+        this.countdownText.setAlpha(0);
+        this.tweens.killTweensOf(this.countdownText);
     }
 
     shutdown() {
@@ -250,5 +272,7 @@ export default class LobbyScene extends Phaser.Scene {
         socketManager.off(MSG.S_PLAYER_JOINED);
         socketManager.off(MSG.S_PLAYER_LEFT);
         socketManager.off(MSG.S_GAME_START);
+        socketManager.off('countdownStart');
+        socketManager.off('countdownCancelled');
     }
 }

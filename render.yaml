@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: the-last-procession
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        sync: false
+      - key: CORS_ORIGIN
+        value: "*"

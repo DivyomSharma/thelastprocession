@@ -17,6 +17,10 @@ export class Room {
         this.gameLoop = null;
         this.matchState = null;
         this.createdAt = Date.now();
+
+        // Countdown state
+        this.countdownTimer = null;
+        this.isCountingDown = false;
     }
 
     addPlayer(playerId, socketId, displayName) {
@@ -28,7 +32,7 @@ export class Room {
             y: 400 + Math.random() * 100,
             isReady: false,
             isAlive: true,
-            // Hidden state — never sent to clients
+            // Hidden state
             attunement: 0,
             possessionStage: 0,
         };
@@ -39,6 +43,11 @@ export class Room {
     removePlayer(playerId) {
         delete this.players[playerId];
         log.info(`Player ${playerId} removed from room ${this.id}`);
+
+        // If a player leaves during countdown, cancel it
+        if (this.isCountingDown) {
+            this.cancelCountdown();
+        }
     }
 
     getPlayerBySocketId(socketId) {
@@ -66,7 +75,30 @@ export class Room {
         };
     }
 
+    startCountdown(callback) {
+        if (this.isCountingDown || this.gameStarted) return;
+
+        this.isCountingDown = true;
+        log.info(`Starting countdown for room ${this.id}`);
+
+        this.countdownTimer = setTimeout(() => {
+            this.isCountingDown = false;
+            callback();
+        }, 3000); // 3 second delay before start
+    }
+
+    cancelCountdown() {
+        if (this.countdownTimer) {
+            clearTimeout(this.countdownTimer);
+            this.countdownTimer = null;
+        }
+        this.isCountingDown = false;
+        log.info(`Countdown cancelled in room ${this.id}`);
+        this.io.in(this.id).emit('countdownCancelled');
+    }
+
     startGame() {
+        this.isCountingDown = false;
         this.gameStarted = true;
         this.matchState = new MatchState();
 

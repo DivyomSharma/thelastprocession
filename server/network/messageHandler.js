@@ -107,7 +107,13 @@ export function setupMessageHandler(io, roomManager) {
             const player = room.players[playerId];
             if (!player) return;
 
+            // Toggle ready
             player.isReady = !player.isReady;
+
+            // If anyone unreadies during countdown, cancel it
+            if (!player.isReady && room.isCountingDown) {
+                room.cancelCountdown();
+            }
 
             // Broadcast updated state
             io.in(room.id).emit(MSG.S_ROOM_STATE, {
@@ -120,14 +126,26 @@ export function setupMessageHandler(io, roomManager) {
             const playerList = Object.values(room.players);
             const allReady = playerList.length >= 1 && playerList.every(p => p.isReady);
 
-            if (allReady) {
-                log.info(`All players ready in room ${room.id}, starting game`);
-                room.startGame();
+            if (allReady && !room.isCountingDown && !room.gameStarted) {
+                // Start 3 second countdown on server
+                room.startCountdown(() => {
+                    // Double check everyone is still ready/present
+                    const stillReady = Object.values(room.players).every(p => p.isReady) && Object.values(room.players).length > 0;
+                    if (stillReady) {
+                        log.info(`Countdown finished in room ${room.id}, starting game`);
+                        room.startGame();
 
-                io.in(room.id).emit(MSG.S_GAME_START, {
-                    matchState: room.matchState.toPublic(),
-                    players: room.getPublicPlayers(),
+                        io.in(room.id).emit(MSG.S_GAME_START, {
+                            matchState: room.matchState.toPublic(),
+                            players: room.getPublicPlayers(),
+                        });
+                    } else {
+                        room.cancelCountdown();
+                    }
                 });
+
+                // Notify clients to show countdown
+                io.in(room.id).emit('countdownStart', { duration: 3 });
             }
         });
 
@@ -140,11 +158,19 @@ export function setupMessageHandler(io, roomManager) {
             room.gameLoop.queueInput(playerId, input);
         });
 
+        const interactRateLimit = new Map();
+
         // ─── Interact ───
         socket.on(MSG.C_INTERACT, (data) => {
             if (!currentRoomId) return;
             const room = roomManager.getRoom(currentRoomId);
             if (!room || !room.gameStarted) return;
+
+            // Rate limit (prevent macro spam)
+            const now = Date.now();
+            const lastInteract = interactRateLimit.get(playerId) || 0;
+            if (now - lastInteract < 200) return;
+            interactRateLimit.set(playerId, now);
 
             // Shrine / bell / relic interaction
             const player = room.players[playerId];

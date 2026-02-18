@@ -48,14 +48,16 @@ export default class MenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // ─── Name Input ───
-        this.playerName = 'Villager';
+        this.playerName = localStorage.getItem('playerName') || 'Villager';
         this.nameDisplay = this.add.text(width / 2, 130, `Name: ${this.playerName}`, {
             fontFamily: 'Courier New',
             fontSize: '12px',
             color: '#998877',
         }).setOrigin(0.5)
             .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => this.changeName());
+            .on('pointerover', () => this.nameDisplay.setColor('#ddccaa'))
+            .on('pointerout', () => this.nameDisplay.setColor('#998877'))
+            .on('pointerdown', () => this.showNameInput());
 
         // ─── Buttons ───
         const btnY = 175;
@@ -79,7 +81,7 @@ export default class MenuScene extends Phaser.Scene {
             .setInteractive({ useHandCursor: true })
             .on('pointerover', () => joinBtn.setStyle({ color: '#ffcc66', backgroundColor: '#2a2a3a' }))
             .on('pointerout', () => joinBtn.setStyle({ color: '#ddccaa', backgroundColor: '#1e1e2a' }))
-            .on('pointerdown', () => this.joinByCode());
+            .on('pointerdown', () => this.showJoinInput());
 
         // ─── Room Browser ───
         this.add.text(width / 2, 220, '─── OPEN ROOMS ───', {
@@ -160,12 +162,79 @@ export default class MenuScene extends Phaser.Scene {
         }
     }
 
-    changeName() {
-        const name = prompt('Enter your name (max 12 chars):', this.playerName);
-        if (name && name.trim()) {
-            this.playerName = name.trim().slice(0, 12);
+    // ─── UI Helpers ───
+    createInputOverlay(title, defaultValue, callback) {
+        // Clear existing overlays
+        const existing = document.querySelector('.input-overlay');
+        if (existing) existing.remove();
+
+        const uiLayer = document.getElementById('ui-layer');
+        const container = document.createElement('div');
+        container.className = 'input-overlay';
+
+        const header = document.createElement('h3');
+        header.innerText = title;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = defaultValue;
+        input.maxLength = 12;
+
+        const btnContainer = document.createElement('div');
+        btnContainer.style.display = 'flex';
+        btnContainer.style.gap = '10px';
+        btnContainer.style.justifyContent = 'center';
+
+        const submitBtn = document.createElement('button');
+        submitBtn.innerText = 'OK';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.innerText = 'Cancel';
+
+        btnContainer.appendChild(cancelBtn);
+        btnContainer.appendChild(submitBtn);
+
+        container.appendChild(header);
+        container.appendChild(input);
+        container.appendChild(btnContainer);
+        uiLayer.appendChild(container);
+
+        input.focus();
+
+        const close = () => {
+            container.remove();
+        };
+
+        const submit = () => {
+            const val = input.value.trim();
+            if (val) callback(val);
+            close();
+        };
+
+        submitBtn.onclick = submit;
+        cancelBtn.onclick = close;
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') submit();
+            if (e.key === 'Escape') close();
+        };
+    }
+
+    showNameInput() {
+        this.createInputOverlay('Enter Name:', this.playerName, (name) => {
+            this.playerName = name.slice(0, 12);
+            localStorage.setItem('playerName', this.playerName);
             this.nameDisplay.setText(`Name: ${this.playerName}`);
+        });
+    }
+
+    showJoinInput() {
+        if (!socketManager.connected) {
+            this.statusText.setText('Connecting to server...');
+            return;
         }
+        this.createInputOverlay('Enter Room Code:', '', (code) => {
+            socketManager.joinRoom(code, this.playerName);
+        });
     }
 
     requestRoomList() {
@@ -227,17 +296,11 @@ export default class MenuScene extends Phaser.Scene {
         socketManager.joinRoom(null, this.playerName);
     }
 
-    joinByCode() {
-        const roomId = prompt('Enter Room Code:');
-        if (!roomId || !roomId.trim()) return;
-        if (!socketManager.connected) {
-            this.statusText.setText('Connecting to server...');
-            return;
-        }
-        socketManager.joinRoom(roomId.trim(), this.playerName);
-    }
-
     shutdown() {
+        // Remove any lingering overlays
+        const existing = document.querySelector('.input-overlay');
+        if (existing) existing.remove();
+
         socketManager.off(MSG.S_ROOM_STATE);
         socketManager.off(MSG.S_ERROR);
         socketManager.off('roomList');
