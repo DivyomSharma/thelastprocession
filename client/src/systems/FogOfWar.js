@@ -28,23 +28,33 @@ export default class FogOfWar {
     }
 
     createLightGradient() {
-        const size = TILE_SIZE * 12; // large enough for biggest light radius
-        const canvas = this.scene.textures.createCanvas('lightGradient', size, size);
-        const ctx = canvas.context;
+        const key = 'lightGradient';
+        if (this.scene.textures.exists(key)) {
+            console.log('[FogOfWar] Reusing existing texture:', key);
+        } else {
+            console.log('[FogOfWar] Creating new texture:', key);
+            const size = TILE_SIZE * 12; // large enough for biggest light radius
+            const canvas = this.scene.textures.createCanvas(key, size, size);
+            if (!canvas) {
+                console.error('[FogOfWar] Failed to create canvas texture:', key);
+                return;
+            }
+            const ctx = canvas.context;
 
-        const cx = size / 2;
-        const cy = size / 2;
-        const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, size / 2);
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
-        gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.8)');
-        gradient.addColorStop(0.8, 'rgba(0, 0, 0, 0.3)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            const cx = size / 2;
+            const cy = size / 2;
+            const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, size / 2);
+            gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+            gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.8)');
+            gradient.addColorStop(0.8, 'rgba(0, 0, 0, 0.3)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, size, size);
-        canvas.refresh();
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            canvas.refresh();
+        }
 
-        this.lightImage = this.scene.add.image(0, 0, 'lightGradient');
+        this.lightImage = this.scene.add.image(0, 0, key);
         this.lightImage.setVisible(false);
     }
 

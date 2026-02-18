@@ -26,150 +26,163 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
-        const { width, height } = this.cameras.main;
+        try {
+            console.log('[GameScene] Creating...');
+            const { width, height } = this.cameras.main;
 
-        // ─── Build tilemap ───
-        this.buildTileMap();
+            // ─── Build tilemap ───
+            this.buildTileMap();
+            console.log('[GameScene] Tilemap built');
 
-        // ─── Player sprites ───
-        this.playerSprites = {};
-        this.playerLabels = {};
-        this.chatBubbles = {};
+            // ─── Player sprites ───
+            this.playerSprites = {};
+            this.playerLabels = {};
+            this.chatBubbles = {};
 
-        // Assign villager variant per player index
-        const playerIds = Object.keys(this.playersData);
-        playerIds.forEach((id, index) => {
-            const p = this.playersData[id];
-            this.createPlayerSprite(id, p.x, p.y, p.displayName, index);
-        });
-
-        // ─── Camera ───
-        const localSprite = this.playerSprites[this.myId];
-        if (localSprite) {
-            this.cameras.main.startFollow(localSprite, true, 0.1, 0.1);
-            this.cameras.main.setZoom(2);
-            this.cameras.main.setBounds(0, 0, MAP_PX_W, MAP_PX_H);
-        }
-
-        // ─── Shrine sprites ───
-        this.shrineSprites = {};
-        if (this.matchData.shrines) {
-            this.matchData.shrines.forEach(shrine => {
-                const s = this.add.sprite(shrine.x, shrine.y, 'shrine').setDepth(1);
-                this.shrineSprites[shrine.id] = s;
+            // Assign villager variant per player index
+            const playerIds = Object.keys(this.playersData);
+            console.log('[GameScene] Creating sprites for players:', playerIds);
+            playerIds.forEach((id, index) => {
+                const p = this.playersData[id];
+                this.createPlayerSprite(id, p.x, p.y, p.displayName, index);
             });
-        }
 
-        // ─── Fog of War ───
-        this.fogOfWar = new FogOfWar(this, MAP_TILES_W, MAP_TILES_H);
-
-        // ─── Input ───
-        this.inputManager = new InputManager(this);
-
-        // ─── UI layer (fixed to camera) ───
-        this.timerText = this.add.text(4, 4, 'Time: 7:00', {
-            fontFamily: 'Courier New',
-            fontSize: '10px',
-            color: '#ccaa77',
-        }).setScrollFactor(0).setDepth(100);
-
-        this.progressText = this.add.text(4, 16, 'Ritual: 0%', {
-            fontFamily: 'Courier New',
-            fontSize: '10px',
-            color: '#aacc77',
-        }).setScrollFactor(0).setDepth(100);
-
-        this.interactHint = this.add.text(width / 2, height - 20, '', {
-            fontFamily: 'Courier New',
-            fontSize: '9px',
-            color: '#ccaa66',
-        }).setOrigin(0.5).setScrollFactor(0).setDepth(100).setAlpha(0);
-
-        // ─── Chat input ───
-        this.chatActive = false;
-        this.chatInput = '';
-        this.chatDisplay = this.add.text(4, height - 16, '', {
-            fontFamily: 'Courier New',
-            fontSize: '9px',
-            color: '#aaaaaa',
-            backgroundColor: '#111118',
-            padding: { x: 4, y: 2 },
-        }).setScrollFactor(0).setDepth(101).setAlpha(0);
-
-        // T key to toggle chat
-        this.input.keyboard.on('keydown-T', () => {
-            if (!this.chatActive) {
-                this.chatActive = true;
-                this.chatInput = '';
-                this.chatDisplay.setAlpha(1);
-                this.chatDisplay.setText('> _');
+            // ─── Camera ───
+            const localSprite = this.playerSprites[this.myId];
+            if (localSprite) {
+                this.cameras.main.startFollow(localSprite, true, 0.1, 0.1);
+                this.cameras.main.setZoom(2);
+                this.cameras.main.setBounds(0, 0, MAP_PX_W, MAP_PX_H);
+            } else {
+                console.warn('[GameScene] Local player sprite not found for ID:', this.myId);
             }
-        });
 
-        this.input.keyboard.on('keydown-ENTER', () => {
-            if (this.chatActive && this.chatInput.trim()) {
-                socketManager.sendChat(this.chatInput);
-                this.chatActive = false;
-                this.chatDisplay.setAlpha(0);
-                this.chatInput = '';
-            }
-        });
-
-        this.input.keyboard.on('keydown-ESC', () => {
-            if (this.chatActive) {
-                this.chatActive = false;
-                this.chatDisplay.setAlpha(0);
-                this.chatInput = '';
-            }
-        });
-
-        this.input.keyboard.on('keydown', (event) => {
-            if (!this.chatActive) return;
-            if (event.key === 'Backspace') {
-                this.chatInput = this.chatInput.slice(0, -1);
-            } else if (event.key.length === 1 && this.chatInput.length < 100) {
-                this.chatInput += event.key;
-            }
-            this.chatDisplay.setText(`> ${this.chatInput}_`);
-        });
-
-        // ─── Socket listeners ───
-        socketManager.on(MSG.S_STATE_UPDATE, (snapshot) => {
-            this.handleStateUpdate(snapshot);
-        });
-
-        socketManager.on(MSG.S_PLAYER_JOINED, ({ player }) => {
-            const idx = Object.keys(this.playerSprites).length;
-            this.createPlayerSprite(player.id, player.x, player.y, player.displayName, idx);
-        });
-
-        socketManager.on(MSG.S_PLAYER_LEFT, ({ playerId }) => {
-            this.removePlayerSprite(playerId);
-        });
-
-        socketManager.on('shrineActivated', ({ shrineId, progress }) => {
-            const shrineSprite = this.shrineSprites[shrineId];
-            if (shrineSprite) {
-                shrineSprite.setTexture('shrine_active');
-                // Flash effect
-                this.tweens.add({
-                    targets: shrineSprite,
-                    alpha: 0.3,
-                    duration: 150,
-                    yoyo: true,
-                    repeat: 3,
+            // ─── Shrine sprites ───
+            this.shrineSprites = {};
+            if (this.matchData.shrines) {
+                this.matchData.shrines.forEach(shrine => {
+                    const s = this.add.sprite(shrine.x, shrine.y, 'shrine').setDepth(1);
+                    this.shrineSprites[shrine.id] = s;
                 });
             }
-            this.progressText.setText(`Ritual: ${progress}%`);
-        });
 
-        socketManager.on('chatMessage', ({ playerId, playerName, message, x, y }) => {
-            this.showChatBubble(playerId, playerName, message, x, y);
-        });
+            // ─── Fog of War ───
+            this.fogOfWar = new FogOfWar(this, MAP_TILES_W, MAP_TILES_H);
+            console.log('[GameScene] FogOfWar initialized');
 
-        socketManager.on(MSG.S_GAME_OVER, ({ result, message }) => {
-            this.scene.start('EndScene', { result, message });
-        });
+            // ─── Input ───
+            this.inputManager = new InputManager(this);
+
+            // ─── UI layer (fixed to camera) ───
+            this.timerText = this.add.text(4, 4, 'Time: 7:00', {
+                fontFamily: 'Courier New',
+                fontSize: '10px',
+                color: '#ccaa77',
+            }).setScrollFactor(0).setDepth(100);
+
+            this.progressText = this.add.text(4, 16, 'Ritual: 0%', {
+                fontFamily: 'Courier New',
+                fontSize: '10px',
+                color: '#aacc77',
+            }).setScrollFactor(0).setDepth(100);
+
+            this.interactHint = this.add.text(width / 2, height - 20, '', {
+                fontFamily: 'Courier New',
+                fontSize: '9px',
+                color: '#ccaa66',
+            }).setOrigin(0.5).setScrollFactor(0).setDepth(100).setAlpha(0);
+
+            // ─── Chat input ───
+            this.chatActive = false;
+            this.chatInput = '';
+            this.chatDisplay = this.add.text(4, height - 16, '', {
+                fontFamily: 'Courier New',
+                fontSize: '9px',
+                color: '#aaaaaa',
+                backgroundColor: '#111118',
+                padding: { x: 4, y: 2 },
+            }).setScrollFactor(0).setDepth(101).setAlpha(0);
+
+            // T key to toggle chat
+            this.input.keyboard.on('keydown-T', () => {
+                if (!this.chatActive) {
+                    this.chatActive = true;
+                    this.chatInput = '';
+                    this.chatDisplay.setAlpha(1);
+                    this.chatDisplay.setText('> _');
+                }
+            });
+
+            this.input.keyboard.on('keydown-ENTER', () => {
+                if (this.chatActive && this.chatInput.trim()) {
+                    socketManager.sendChat(this.chatInput);
+                    this.chatActive = false;
+                    this.chatDisplay.setAlpha(0);
+                    this.chatInput = '';
+                }
+            });
+
+            this.input.keyboard.on('keydown-ESC', () => {
+                if (this.chatActive) {
+                    this.chatActive = false;
+                    this.chatDisplay.setAlpha(0);
+                    this.chatInput = '';
+                }
+            });
+
+            this.input.keyboard.on('keydown', (event) => {
+                if (!this.chatActive) return;
+                if (event.key === 'Backspace') {
+                    this.chatInput = this.chatInput.slice(0, -1);
+                } else if (event.key.length === 1 && this.chatInput.length < 100) {
+                    this.chatInput += event.key;
+                }
+                this.chatDisplay.setText(`> ${this.chatInput}_`);
+            });
+
+            // ─── Socket listeners ───
+            socketManager.on(MSG.S_STATE_UPDATE, (snapshot) => {
+                this.handleStateUpdate(snapshot);
+            });
+
+            socketManager.on(MSG.S_PLAYER_JOINED, ({ player }) => {
+                const idx = Object.keys(this.playerSprites).length;
+                this.createPlayerSprite(player.id, player.x, player.y, player.displayName, idx);
+            });
+
+            socketManager.on(MSG.S_PLAYER_LEFT, ({ playerId }) => {
+                this.removePlayerSprite(playerId);
+            });
+
+            socketManager.on('shrineActivated', ({ shrineId, progress }) => {
+                const shrineSprite = this.shrineSprites[shrineId];
+                if (shrineSprite) {
+                    shrineSprite.setTexture('shrine_active');
+                    // Flash effect
+                    this.tweens.add({
+                        targets: shrineSprite,
+                        alpha: 0.3,
+                        duration: 150,
+                        yoyo: true,
+                        repeat: 3,
+                    });
+                }
+                this.progressText.setText(`Ritual: ${progress}%`);
+            });
+
+            socketManager.on('chatMessage', ({ playerId, playerName, message, x, y }) => {
+                this.showChatBubble(playerId, playerName, message, x, y);
+            });
+
+            socketManager.on(MSG.S_GAME_OVER, ({ result, message }) => {
+                this.scene.start('EndScene', { result, message });
+            });
+
+            console.log('[GameScene] Created successfully');
+        } catch (err) {
+            console.error('[GameScene] Error in create:', err);
+            this.add.text(10, 10, `ERROR: ${err.message}`, { color: '#ff0000', backgroundColor: '#000000' }).setScrollFactor(0).setDepth(999);
+        }
     }
 
     createPlayerSprite(id, x, y, displayName, index) {
@@ -433,6 +446,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     shutdown() {
+        if (this.fogOfWar) {
+            this.fogOfWar.destroy();
+        }
         socketManager.off(MSG.S_STATE_UPDATE);
         socketManager.off(MSG.S_PLAYER_JOINED);
         socketManager.off(MSG.S_PLAYER_LEFT);

@@ -164,6 +164,7 @@ export default class LobbyScene extends Phaser.Scene {
         });
 
         socketManager.on(MSG.S_GAME_START, (data) => {
+            console.log('[LobbyScene] Game start received', data);
             // Immediately transition (countdown finished on server)
             this.scene.start('GameScene', {
                 matchState: data.matchState,
