@@ -1,0 +1,260 @@
+﻿Perfect. We’re officially pivoting to:
+
+🕯 THE LAST PROCESSION – Pixel Art Edition
+(Built with Antigravity for coding)
+
+This is actually a huge upgrade decision.
+
+Pixel art + top‑down =
+
+Easier multiplayer
+
+Faster development
+
+Cleaner readability
+
+Stronger identity
+
+Less technical risk
+
+Now I’ll fully redesign the game structure for:
+
+🎮 2D Top‑Down Pixel Art
+
+🌐 Browser Multiplayer
+
+🧠 Social Possession System
+
+🛠 Built using Antigravity Claude for coding
+
+🎨 NEW GAME STYLE
+Perspective
+Top‑down (like your forest image)
+
+OR
+
+Isometric (like your stone room image)
+
+👉 I strongly recommend top‑down 2D for multiplayer simplicity.
+
+🧱 UPDATED TECH STACK (Pixel Version)
+🖥 Client
+JavaScript
+
+Phaser 3 (best for 2D multiplayer pixel games)
+
+HTML5 Canvas / WebGL
+
+Pixel sprites (32x32 or 48x48)
+
+🌐 Server
+Node.js
+
+Socket.io
+
+Authoritative server logic
+
+Room-based matchmaking
+
+🎨 Art Creation
+PixelLab (for characters)
+
+Aseprite (if needed)
+
+16–32 color palette max
+
+32x32 tiles
+
+🎮 GAME REDESIGN FOR PIXEL ART
+Movement
+4-direction or 8-direction
+
+Tile-based collision
+
+Slight movement smoothing
+
+Map Design
+Instead of large 3D spaces:
+
+Village square
+
+Forest path loops
+
+Shrine clearing
+
+Small chapel interior
+
+Each map:
+
+50x50 tiles max
+
+Fog-of-war effect
+
+Light radius around torches
+
+👥 PLAYER VISUAL DESIGN
+All villagers look nearly identical.
+
+Possession visual differences must be:
+
+Slight sprite flicker
+
+Shadow glitch
+
+Frame delay
+
+Subtle color shift
+
+NO glowing eyes.
+NO monster form.
+Keep it psychological.
+
+🩸 POSSESSION SYSTEM (Pixel Adaptation)
+Hidden Attunement (Server-Side Only)
+Triggers:
+
+Lighting shrine out of order
+
+Walking ritual path alone
+
+Ringing bell alone
+
+Staying in darkness
+
+Stage Visual Effects
+Stage 1 – Touched
+
+Player sprite flickers 1 frame occasionally
+
+Subtle ambient whisper sound
+
+Stage 2 – Called
+
+Ritual interaction may silently fail
+
+Shrine animation slightly slower
+
+Stage 3 – Vessel
+
+Can misdirect shrine effects
+
+Slight shadow misalignment under sprite
+
+All subtle.
+
+🗺 MAP STRUCTURE (Pixel Version)
+Map 1 – Village Square
+Central fire
+
+3 shrines around perimeter
+
+Bell tower
+
+Multiple loop paths
+
+Map 2 – Forest Path
+Branching routes
+
+Fog tiles
+
+Standing stones
+
+Map 3 – Hill Shrine
+Open clearing
+
+Ritual circle
+
+Long visibility tension
+
+🌫 Pixel Horror Techniques
+Instead of 3D fog:
+
+Dark vignette overlay
+
+Limited light radius per player
+
+Tile darkening outside light
+
+Flickering torch sprite
+
+This is VERY effective in pixel games.
+
+🛠 HOW YOU USE ANTIGRAVITY FOR CODING
+You won’t ask it to “make a game”.
+
+You’ll structure it like this:
+
+MASTER CODING PROMPT FOR ANTIGRAVITY
+You are a senior JavaScript multiplayer game engineer.
+
+We are building a 2D top-down pixel multiplayer horror game
+using Phaser 3 (client) and Node.js + Socket.io (server).
+
+Game title: THE LAST PROCESSION
+
+Core systems required:
+- Room-based multiplayer
+- Authoritative server
+- Player movement sync
+- Ritual system
+- Hidden possession system
+- Attunement tracking per player
+- Shrine interaction validation
+- Fog-of-war system
+- Light radius per player
+
+Output:
+- Folder structure
+- Client/server architecture
+- Base server.js
+- Phaser scene structure
+- Player class structure
+- Socket message schema
+- Ritual validation pseudocode
+
+Do not redesign mechanics.
+Keep performance lightweight.
+Assume pixel art sprites.
+📁 RECOMMENDED PROJECT STRUCTURE
+/client
+   index.html
+   main.js
+   gameScene.js
+   player.js
+   ritualSystem.js
+   ui.js
+
+/server
+   server.js
+   matchManager.js
+   ritualLogic.js
+   possessionSystem.js
+   playerState.js
+Clean.
+Simple.
+Scalable.
+
+🔥 WHY THIS VERSION IS SMARTER
+3D version:
+
+Harder netcode
+
+Harder lighting
+
+More asset complexity
+
+FPS syncing issues
+
+Pixel version:
+
+Easier movement sync
+
+Smaller packets
+
+Clear silhouettes
+
+Faster iteration
+
+Better indie identity
+
+This is actually more commercially viable.

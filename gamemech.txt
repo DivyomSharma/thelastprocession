@@ -1,0 +1,121 @@
+You are acting as a senior multiplayer game architect and production engineer.
+
+We are building a 2D top-down pixel multiplayer horror game titled:
+
+THE LAST PROCESSION
+
+This is not a brainstorming session.
+This is a production architecture and implementation planning task.
+
+-----------------------------------
+SECTION 1 — CORE GAME IDENTITY
+-----------------------------------
+
+Genre: Co-op Folk Horror / Social Deduction
+Perspective: 2D Top-Down Pixel Art
+Players per match: 4–6
+Session length: 6–10 minutes
+Platform: Browser (desktop-first)
+
+Core mechanics:
+- Ritual-based progression
+- Hidden possession system
+- Player-caused corruption (no random ghost)
+- Server-authoritative validation
+- Subtle psychological horror
+- No combat
+- No monsters chasing players
+
+Possession stages:
+- Touched
+- Called
+- Vessel
+
+Ritual actions:
+- Lighting shrines
+- Ringing bells
+- Walking ritual paths together
+- Carrying relics
+
+-----------------------------------
+SECTION 2 — TECHNOLOGY STACK (LOCKED)
+-----------------------------------
+
+CLIENT:
+- JavaScript (ES6+)
+- Phaser 3 (2D engine)
+- HTML5 Canvas / WebGL renderer
+- Pixel sprites (32x32 tile size)
+
+SERVER:
+- Node.js
+- Socket.io
+- Room-based match instances
+- Authoritative server logic
+
+NO:
+- Physics engines
+- Heavy frameworks
+- Complex ECS systems
+- Real-time lighting engines
+
+-----------------------------------
+SECTION 3 — ARCHITECTURE PRINCIPLES
+-----------------------------------
+
+1. Server is the single source of truth.
+2. Client handles perception only.
+3. Hidden states (attunement, possession stage, ritual correctness) never sent to clients directly.
+4. All ritual validation occurs server-side.
+5. Clients only send action requests.
+6. Server returns outcomes.
+7. Hallucination effects are client-only.
+
+-----------------------------------
+SECTION 4 — REQUIRED OUTPUT
+-----------------------------------
+
+Provide:
+
+1) Complete folder structure for client and server
+2) High-level architecture diagram explanation
+3) Server state structure definitions
+4) Player state schema
+5) Match state schema
+6) Socket message protocol design
+7) Ritual validation flow
+8) Possession progression logic flow
+9) Fog-of-war/light radius implementation approach
+10) Minimal Phaser scene structure
+11) Scalable room manager design
+12) Step-by-step development roadmap (MVP first)
+13) Performance optimization strategy
+14) Clear separation of responsibilities
+
+-----------------------------------
+SECTION 5 — IMPORTANT CONSTRAINTS
+-----------------------------------
+
+- Keep everything lightweight.
+- Prioritize determinism.
+- Avoid over-engineering.
+- Design for small indie team (3–5 developers).
+- Must be feasible within 8–12 weeks.
+- Focus on clarity and maintainability.
+
+-----------------------------------
+SECTION 6 — OUTPUT STYLE
+-----------------------------------
+
+Use:
+- Clear technical language
+- Code-style pseudocode where useful
+- Structured sections
+- No redesign of mechanics
+- No story expansion
+- No unnecessary fluff
+
+This document must function as:
+- A technical design document
+- A coding blueprint
+- A production roadmap
