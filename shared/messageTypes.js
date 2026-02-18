@@ -20,4 +20,5 @@ export const S_RITUAL_PROGRESS = 's:ritualProgress';
 export const S_POSSESSION_FX = 's:possessionFx';
 export const S_GAME_OVER = 's:gameOver';
 export const S_HALLUCINATION = 's:hallucination';
+export const S_ATTUNEMENT_HINT = 's:attunementHint'; // New: Visual/Audio feedback for high attunement
 export const S_ERROR = 's:error';

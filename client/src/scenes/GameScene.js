@@ -178,12 +178,67 @@ export default class GameScene extends Phaser.Scene {
                 this.scene.start('EndScene', { result, message });
             });
 
+            socketManager.on(MSG.S_ATTUNEMENT_HINT, ({ level, type }) => {
+                this.handleAttunementHint(level, type);
+            });
+
             console.log('[GameScene] Created successfully');
         } catch (err) {
             console.error('[GameScene] Error in create:', err);
             this.add.text(10, 10, `ERROR: ${err.message}`, { color: '#ff0000', backgroundColor: '#000000' }).setScrollFactor(0).setDepth(999);
         }
     }
+
+    handleAttunementHint(level, type) {
+        console.log(`[GameScene] Attunement Hint: ${type} at ${level}%`);
+
+        // Visual feedback based on level
+        let duration = 500;
+        let shake = 0;
+
+        if (level >= 90) { duration = 1000; shake = 0.02; }
+        else if (level >= 75) { duration = 800; shake = 0.01; }
+        else if (level >= 50) { duration = 500; shake = 0.005; }
+        else { duration = 200; shake = 0; }
+
+        this.cameras.main.flash(duration, 50, 0, 0);
+
+        if (shake > 0) {
+            this.cameras.main.shake(duration / 2, shake);
+        }
+
+        // Text hint
+        const messages = {
+            25: "You feel watched...",
+            50: "The shadows are lengthening...",
+            75: "Something is breathing down your neck...",
+            90: "RUN."
+        };
+
+        const msg = messages[level] || "You feel uneasy.";
+        this.showFloatingText(msg);
+    }
+
+    showFloatingText(msg) {
+        const { width, height } = this.cameras.main;
+        const text = this.add.text(width / 2, height / 3, msg, {
+            fontFamily: 'Courier New',
+            fontSize: '12px',
+            color: '#ff4444',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(200);
+
+        this.tweens.add({
+            targets: text,
+            alpha: 0,
+            y: height / 3 - 30,
+            duration: 4000,
+            ease: 'Power2',
+            onComplete: () => text.destroy()
+        });
+    }
+
 
     createPlayerSprite(id, x, y, displayName, index) {
         const textureKey = `villager_${index % 6}`;
@@ -453,6 +508,7 @@ export default class GameScene extends Phaser.Scene {
         socketManager.off(MSG.S_PLAYER_JOINED);
         socketManager.off(MSG.S_PLAYER_LEFT);
         socketManager.off(MSG.S_GAME_OVER);
+        socketManager.off(MSG.S_ATTUNEMENT_HINT);
         socketManager.off('shrineActivated');
         socketManager.off('chatMessage');
     }

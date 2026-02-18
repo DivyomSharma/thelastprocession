@@ -6,6 +6,7 @@ import MovementValidator from './MovementValidator.js';
 import CollisionMap from './CollisionMap.js';
 import { createLogger } from '../utils/logger.js';
 import * as MSG from '../../shared/messageTypes.js';
+import AttunementManager from './mechanics/AttunementManager.js';
 
 const log = createLogger('GameLoop');
 
@@ -24,6 +25,8 @@ export class GameLoop {
 
         // Input buffer: playerId → { dx, dy }
         this.inputBuffer = new Map();
+
+        this.attunementManager = new AttunementManager();
     }
 
     start() {
@@ -71,6 +74,21 @@ export class GameLoop {
             const player = players[id];
             const input = this.inputBuffer.get(id) || { dx: 0, dy: 0 };
             this.movementValidator.applyMovement(player, input, deltaMs);
+        }
+
+        // ─── Update Attunement ───
+        const attunementEvents = this.attunementManager.update(this.room.matchState, deltaMs / 1000);
+
+        if (attunementEvents && attunementEvents.length > 0) {
+            attunementEvents.forEach(event => {
+                const socketId = this.room.players[event.playerId]?.socketId;
+                if (socketId) {
+                    this.io.to(socketId).emit(MSG.S_ATTUNEMENT_HINT, {
+                        level: event.level,
+                        type: event.type
+                    });
+                }
+            });
         }
 
         // ─── Broadcast state snapshot ───
