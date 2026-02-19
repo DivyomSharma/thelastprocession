@@ -60,9 +60,10 @@ export default class FogOfWar {
 
     /**
      * Update the fog overlay.
-     * @param {Array<{x, y, radius}>} lightSources - pixel positions + radius in tiles
+     * @param {Array<{x, y, radius, isPlayer}>} lightSources - pixel positions + radius in tiles
+     * @param {number} breathingScale - 0.0 to 1.0 scale for player light radius
      */
-    update(lightSources) {
+    update(lightSources, breathingScale = 1.0) {
         this.flickerTime += 0.05;
 
         // Fill with darkness
@@ -72,7 +73,12 @@ export default class FogOfWar {
         for (const source of lightSources) {
             // Add flicker to radius
             const flicker = Math.sin(this.flickerTime + source.x * 0.01) * 0.15;
-            const radius = (source.radius + flicker) * TILE_SIZE;
+            let radius = (source.radius + flicker) * TILE_SIZE;
+
+            // Apply breathing/terror scale to player only
+            if (source.isPlayer) {
+                radius *= breathingScale;
+            }
 
             const diameter = radius * 2;
             this.lightImage.setDisplaySize(diameter, diameter);

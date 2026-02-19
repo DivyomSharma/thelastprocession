@@ -93,10 +93,17 @@ export class GameLoop {
 
         // ─── Broadcast state snapshot ───
         this.broadcastState();
+
+        // ─── Check Win/Loss Condition (Phase 4) ───
+        const result = match.checkWinCondition(this.room.players);
+        if (result) {
+            this.endGame(result);
+        }
     }
 
     /** Send current state to all players in the room */
     broadcastState() {
+        // ... (existing code)
         const players = {};
         for (const [id, player] of Object.entries(this.room.players)) {
             players[id] = {
@@ -105,30 +112,43 @@ export class GameLoop {
                 y: Math.round(player.y * 10) / 10,
                 displayName: player.displayName,
                 isAlive: player.isAlive,
+                // Include bells/relics in detailed state broadcast if needed, 
+                // but usually better to send diffs. For now, we rely on MatchState.toPublic() 
+                // but we need to actually SEND it.
+                // WAIT: broadcastState currently constructs a custom object. 
+                // We should merge MatchState.toPublic result.
             };
         }
+
+        // Merge match state
+        const publicMatchState = this.room.matchState.toPublic();
 
         this.io.to(this.room.id).emit(MSG.S_STATE_UPDATE, {
             players,
             timeLeft: Math.ceil(this.room.matchState.timer),
             progress: this.room.matchState.progress,
+            ...publicMatchState // bells, relics, nextExpectedIndex
         });
     }
 
     endGame(reason) {
         this.stop();
 
-        const result = reason === 'time_expired' ? 'darkness_wins' : reason;
-        const message = reason === 'time_expired'
-            ? 'The darkness has consumed the village. The ritual was not completed in time.'
-            : 'The game has ended.';
+        let message = 'Game Over';
+        if (reason === 'survivors') {
+            message = 'The Ritual is Complete. The Village is Cleanse.';
+        } else if (reason === 'entity') {
+            message = 'Total Possession. The Entity Feasts.';
+        } else if (reason === 'time_expired') {
+            message = 'Darkness Consumes All. Time ran out.';
+        }
 
         this.io.to(this.room.id).emit(MSG.S_GAME_OVER, {
-            result,
+            result: reason,
             message,
         });
 
-        this.room.endGame(result);
+        // this.room.endGame(reason); // Basic cleanup
         log.info(`Game over in room ${this.room.id}: ${reason}`);
     }
 }

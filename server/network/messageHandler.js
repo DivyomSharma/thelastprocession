@@ -178,6 +178,48 @@ export function setupMessageHandler(io, roomManager) {
 
             const match = room.matchState;
 
+            // ─── Bell Interaction ───
+            for (const bell of match.bells) {
+                const dist = Math.sqrt((player.x - bell.x) ** 2 + (player.y - bell.y) ** 2);
+                if (dist < 48) {
+                    // Ring bell
+                    if (Date.now() > bell.cooldown) {
+                        bell.cooldown = Date.now() + 5000; // 5s cooldown
+
+                        // Penalty: +5 Attunement (The Entity hears you)
+                        player.attunement = Math.min(100, (player.attunement || 0) + 5);
+
+                        io.in(room.id).emit('bellRing', {
+                            bellId: bell.id,
+                            playerId
+                        });
+
+                        log.info(`Bell ${bell.id} rung by ${playerId}`);
+                    } else {
+                        socket.emit(MSG.S_ATTUNEMENT_HINT, { level: 0, type: 'COOLDOWN' });
+                    }
+                    return; // Stop checking other interactions
+                }
+            }
+
+            // ─── Relic Interaction ───
+            const relicIdx = match.relics.findIndex(r => r.active && Math.sqrt((player.x - r.x) ** 2 + (player.y - r.y) ** 2) < 48);
+            if (relicIdx !== -1) {
+                const relic = match.relics[relicIdx];
+                relic.active = false; // Mark as consumed
+
+                // Reward: -20 Attunement (Sanity restored)
+                player.attunement = Math.max(0, (player.attunement || 0) - 20);
+
+                io.in(room.id).emit('relicCollected', {
+                    relicId: relic.id,
+                    playerId
+                });
+
+                log.info(`Relic ${relic.id} collected by ${playerId}`);
+                return;
+            }
+
             // Check proximity to shrines
             for (const shrine of match.shrines) {
                 const dx = player.x - shrine.x;
@@ -186,17 +228,37 @@ export function setupMessageHandler(io, roomManager) {
 
                 if (dist < 48) {
                     if (!shrine.activated) {
+                        // ─── ORDER CHECK ───
+                        if (shrine.orderIndex !== match.nextExpectedIndex) {
+                            // WRONG ORDER!
+                            socket.emit(MSG.S_ATTUNEMENT_HINT, {
+                                level: 0, // Abuse the hint system for now or add new type
+                                type: 'WRONG_SHRINE'
+                            });
+
+                            // Penalty: +10 Attunement
+                            player.attunement = Math.min(100, (player.attunement || 0) + 10);
+
+                            // Visual shockwave/pushback (handled by client on WRONG_SHRINE)
+                            return;
+                        }
+
+                        // CORRECT ORDER!
                         shrine.activated = true;
                         shrine.activatedBy = playerId;
-                        match.progress = Math.min(100, match.progress + 15);
+                        match.nextExpectedIndex++;
+
+                        // Progress calculation (100% / 7 shrines ≈ 14.3%)
+                        match.progress = Math.min(100, Math.round((match.nextExpectedIndex - 1) / 7 * 100));
 
                         io.in(room.id).emit('shrineActivated', {
                             shrineId: shrine.id,
                             playerId,
                             progress: match.progress,
+                            nextExpectedIndex: match.nextExpectedIndex
                         });
 
-                        log.info(`Shrine ${shrine.id} activated by ${playerId}, progress: ${match.progress}`);
+                        log.info(`Shrine ${shrine.id} (Order: ${shrine.orderIndex}) activated by ${playerId}. Next: ${match.nextExpectedIndex}`);
 
                         // Win check
                         if (match.progress >= 100) {
@@ -206,6 +268,9 @@ export function setupMessageHandler(io, roomManager) {
                                 message: 'The ritual is complete! The village is saved!',
                             });
                         }
+                    }
+                    else {
+                        socket.emit(MSG.S_ATTUNEMENT_HINT, { level: 0, type: 'ALREADY_ACTIVE' });
                     }
                     break;
                 }

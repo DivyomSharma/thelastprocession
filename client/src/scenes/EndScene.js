@@ -18,7 +18,7 @@ export default class EndScene extends Phaser.Scene {
         const { width, height } = this.cameras.main;
         this.cameras.main.setBackgroundColor('#0a0a0f');
 
-        const isVillagerWin = this.result === 'villagers_win';
+        const isVillagerWin = this.result === 'survivors';
 
         // Icon
         this.add.text(width / 2, height / 2 - 70,

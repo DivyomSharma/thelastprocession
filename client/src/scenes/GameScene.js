@@ -58,11 +58,55 @@ export default class GameScene extends Phaser.Scene {
             }
 
             // ─── Shrine sprites ───
+            // ─── Shrine sprites ───
             this.shrineSprites = {};
+            this.shrineLabels = {}; // Roman Numeral text
+            this.bellSprites = {};
+            this.relicSprites = {};
+
+            const toRoman = (num) => {
+                const map = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII' };
+                return map[num] || num;
+            };
+
             if (this.matchData.shrines) {
                 this.matchData.shrines.forEach(shrine => {
                     const s = this.add.sprite(shrine.x, shrine.y, 'shrine').setDepth(1);
                     this.shrineSprites[shrine.id] = s;
+
+                    // Create label (hidden by default)
+                    const label = this.add.text(shrine.x, shrine.y - 30, toRoman(shrine.orderIndex), {
+                        fontFamily: 'Times New Roman',
+                        fontSize: '14px',
+                        color: '#ffffaa',
+                        stroke: '#000000',
+                        strokeThickness: 2
+                    }).setOrigin(0.5).setDepth(20).setAlpha(0);
+
+                    this.shrineLabels[shrine.id] = label;
+                });
+            }
+
+            // ─── Bells & Relics (Initial) ───
+            if (this.matchData.bells) {
+                this.matchData.bells.forEach(bell => {
+                    const b = this.add.sprite(bell.x, bell.y, 'bell').setDepth(1);
+                    this.bellSprites[bell.id] = b;
+                });
+            }
+            if (this.matchData.relics) {
+                this.matchData.relics.forEach(relic => {
+                    const r = this.add.sprite(relic.x, relic.y, 'relic').setDepth(1);
+                    // Pulsing tween for relics
+                    this.tweens.add({
+                        targets: r,
+                        alpha: 0.6,
+                        scale: 0.9,
+                        duration: 800,
+                        yoyo: true,
+                        repeat: -1
+                    });
+                    this.relicSprites[relic.id] = r;
                 });
             }
 
@@ -80,7 +124,7 @@ export default class GameScene extends Phaser.Scene {
                 color: '#ccaa77',
             }).setScrollFactor(0).setDepth(100);
 
-            this.progressText = this.add.text(4, 16, 'Ritual: 0%', {
+            this.progressText = this.add.text(4, 16, 'Ritual: 0%\nNext: I', {
                 fontFamily: 'Courier New',
                 fontSize: '10px',
                 color: '#aacc77',
@@ -153,8 +197,48 @@ export default class GameScene extends Phaser.Scene {
             socketManager.on(MSG.S_PLAYER_LEFT, ({ playerId }) => {
                 this.removePlayerSprite(playerId);
             });
+            // ─── Socket Listeners ───
+            socketManager.on('bellRing', ({ bellId, playerId }) => {
+                const bell = this.bellSprites[bellId];
+                if (bell) {
+                    // Shake bell
+                    this.tweens.add({
+                        targets: bell,
+                        x: bell.x + 5,
+                        duration: 50,
+                        yoyo: true,
+                        repeat: 5
+                    });
+                    // Play sound (placeholder)
+                    console.log('BONG! Bell rung by', playerId);
+                }
+                this.cameras.main.shake(200, 0.005); // Global subtle shake
+                this.showFloatingText("The Bell Tolls...", 0xffaa00);
+            });
 
-            socketManager.on('shrineActivated', ({ shrineId, progress }) => {
+            socketManager.on('relicCollected', ({ relicId, playerId }) => {
+                const relic = this.relicSprites[relicId];
+                if (relic) {
+                    // Poof effect
+                    this.tweens.add({
+                        targets: relic,
+                        scale: 1.5,
+                        alpha: 0,
+                        duration: 300,
+                        onComplete: () => {
+                            relic.destroy();
+                            delete this.relicSprites[relicId];
+                        }
+                    });
+                }
+                if (playerId === socketManager.playerId) { // Changed socketManager.socket.id to socketManager.playerId
+                    this.showFloatingText("Sanity Restored!", 0x00ffff);
+                    // Flash cyan
+                    this.cameras.main.flash(300, 0, 255, 255);
+                }
+            });
+
+            socketManager.on('shrineActivated', ({ shrineId, progress, nextExpectedIndex }) => {
                 const shrineSprite = this.shrineSprites[shrineId];
                 if (shrineSprite) {
                     shrineSprite.setTexture('shrine_active');
@@ -167,15 +251,30 @@ export default class GameScene extends Phaser.Scene {
                         repeat: 3,
                     });
                 }
-                this.progressText.setText(`Ritual: ${progress}%`);
+
+                const toRoman = (num) => {
+                    const map = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII' };
+                    return map[num] || num;
+                };
+
+                this.progressText.setText(`Ritual: ${progress}%\nNext: ${toRoman(nextExpectedIndex || 1)}`);
+            });
+
+            socketManager.on(MSG.S_GAME_OVER, ({ result, message }) => {
+                console.log(`[GameScene] GAME OVER: ${result}`);
+                // Stop input
+                this.input.keyboard.enabled = false;
+
+                // Fade out to black
+                this.cameras.main.fadeOut(2000, 0, 0, 0);
+
+                this.cameras.main.once('camerafadeoutcomplete', () => {
+                    this.scene.start('EndScene', { result, message });
+                });
             });
 
             socketManager.on('chatMessage', ({ playerId, playerName, message, x, y }) => {
                 this.showChatBubble(playerId, playerName, message, x, y);
-            });
-
-            socketManager.on(MSG.S_GAME_OVER, ({ result, message }) => {
-                this.scene.start('EndScene', { result, message });
             });
 
             socketManager.on(MSG.S_ATTUNEMENT_HINT, ({ level, type }) => {
@@ -209,6 +308,18 @@ export default class GameScene extends Phaser.Scene {
 
     handleAttunementHint(level, type) {
         console.log(`[GameScene] Attunement Hint: ${type} at ${level}%`);
+
+        // ─── Special Feedback Types ───
+        if (type === 'WRONG_SHRINE') {
+            this.cameras.main.shake(500, 0.05); // Violent shake
+            this.cameras.main.flash(500, 255, 0, 0); // Bright red flash
+            this.showFloatingText("WRONG SHRINE! THE RITUAL REJECTS YOU!");
+            return;
+        }
+        if (type === 'ALREADY_ACTIVE') {
+            this.showFloatingText("This shrine is already lit.");
+            return;
+        }
 
         // Vignette intensity
         let targetAlpha = 0;
@@ -374,7 +485,48 @@ export default class GameScene extends Phaser.Scene {
 
         // Update progress
         if (snapshot.progress != null) {
-            this.progressText.setText(`Ritual: ${snapshot.progress}%`);
+            const toRoman = (num) => {
+                const map = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII' };
+                return map[num] || num;
+            };
+
+            const nextIdx = snapshot.nextExpectedIndex || 1;
+            this.progressText.setText(`Ritual: ${snapshot.progress}%\nNext: ${toRoman(nextIdx)}`);
+        }
+
+        // ─── Bells & Relics Sync ───
+        if (snapshot.bells) {
+            snapshot.bells.forEach(bell => {
+                if (!this.bellSprites[bell.id]) {
+                    const b = this.add.sprite(bell.x, bell.y, 'bell').setDepth(1);
+                    this.bellSprites[bell.id] = b;
+                }
+            });
+        }
+        if (snapshot.relics) {
+            const currentIds = new Set();
+            snapshot.relics.forEach(relic => {
+                currentIds.add(relic.id);
+                if (!this.relicSprites[relic.id]) {
+                    const r = this.add.sprite(relic.x, relic.y, 'relic').setDepth(1);
+                    this.tweens.add({
+                        targets: r,
+                        alpha: 0.6,
+                        scale: 0.9,
+                        duration: 800,
+                        yoyo: true,
+                        repeat: -1
+                    });
+                    this.relicSprites[relic.id] = r;
+                }
+            });
+            // Remove missing
+            Object.keys(this.relicSprites).forEach(id => {
+                if (!currentIds.has(id)) {
+                    this.relicSprites[id].destroy();
+                    delete this.relicSprites[id];
+                }
+            });
         }
     }
 
@@ -471,15 +623,27 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
-        // ─── Interaction hint ───
+        // ─── Interaction hint & Shrine Labels ───
         if (localSprite && this.matchData.shrines) {
             let nearShrine = false;
             for (const shrine of this.matchData.shrines) {
                 const dx = localSprite.x - shrine.x;
                 const dy = localSprite.y - shrine.y;
-                if (Math.sqrt(dx * dx + dy * dy) < 48) {
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                // Show label if within 60px
+                if (dist < 60) {
+                    if (this.shrineLabels[shrine.id]) {
+                        this.shrineLabels[shrine.id].setAlpha(1);
+                    }
+                } else {
+                    if (this.shrineLabels[shrine.id]) {
+                        this.shrineLabels[shrine.id].setAlpha(0);
+                    }
+                }
+
+                if (dist < 48) {
                     nearShrine = true;
-                    break;
                 }
             }
             if (nearShrine) {
@@ -492,15 +656,25 @@ export default class GameScene extends Phaser.Scene {
         // ─── Fog of war ───
         const lightSources = [];
         if (localSprite) {
-            lightSources.push({ x: localSprite.x, y: localSprite.y, radius: 120 });
+            lightSources.push({ x: localSprite.x, y: localSprite.y, radius: 120, isPlayer: true });
         }
         // Add torches/shrines as ambient lights
         if (this.matchData.shrines) {
             for (const shrine of this.matchData.shrines) {
-                lightSources.push({ x: shrine.x, y: shrine.y, radius: 60 });
+                // Shrines don't shrink with terror
+                lightSources.push({ x: shrine.x, y: shrine.y, radius: shrine.activated ? 100 : 60 });
             }
         }
-        this.fogOfWar.update(lightSources);
+
+        // Calculate breathing/terror scale
+        // Pulse: ±5% every few seconds
+        const pulse = Math.sin(time * 0.002) * 0.05;
+        // Terror: Shrink down to 60% at max attunement
+        const terrorScale = Math.max(0.6, 1.0 - ((this.attunementLevel || 0) / 100) * 0.4);
+
+        const totalScale = terrorScale + pulse;
+
+        this.fogOfWar.update(lightSources, totalScale);
 
         // ─── Hallucinations ───
         if (this.vignette && this.vignette.alpha > 0.3) { // Only if attunement is high enough (Stage 2+)

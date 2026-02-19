@@ -218,5 +218,22 @@ export default class BootScene extends Phaser.Scene {
         vctx.fillStyle = vigGrad;
         vctx.fillRect(0, 0, vigSize, vigSize);
         vigCanvas.refresh();
+
+
+
+        // ─── Relic Texture ───
+        const relicCanvas = this.textures.createCanvas('relic', 32, 32);
+        const rctx = relicCanvas.context;
+        rctx.fillStyle = '#00FFFF'; // Cyan
+        rctx.beginPath();
+        rctx.arc(16, 16, 10, 0, Math.PI * 2);
+        rctx.fill();
+        // Glow
+        rctx.strokeStyle = '#FFFFFF';
+        rctx.lineWidth = 2;
+        rctx.stroke();
+        relicCanvas.refresh();
+
+        this.scene.start('MenuScene');
     }
 }
